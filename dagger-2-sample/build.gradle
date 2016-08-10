@@ -26,7 +26,12 @@ dependencies {
                 'org.glassfish:javax.el:3.0.0',
                 'com.google.dagger:dagger:2.2',
                 'org.devoware:yaml-configuration:1.0',
-                'org.apache.tomcat:tomcat-jdbc:8.5.4'
+                'org.apache.tomcat:tomcat-jdbc:8.5.4',
+                'postgresql:postgresql:9.1-901-1.jdbc4',
+                'io.dropwizard.metrics:metrics-core:3.1.0',
+                'io.dropwizard.metrics:metrics-healthchecks:3.1.0',
+                'io.dropwizard.metrics:metrics-jvm:3.1.0'
+                
     
     compileOnly 'com.google.code.findbugs:annotations:3.0.1',
                 'com.google.dagger:dagger-compiler:2.2'            

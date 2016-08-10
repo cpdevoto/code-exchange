@@ -17,6 +17,7 @@ import org.devoware.configuration.validation.ValidationMethod;
 import org.devoware.example.util.Duration;
 import org.devoware.example.validation.MinDuration;
 
+import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.primitives.Ints;
@@ -782,7 +783,7 @@ public class DataSourceFactory implements PooledDataSourceFactory {
     }
 
     @Override
-    public ManagedDataSource build(String name) {
+    public ManagedDataSource build(MetricRegistry metricRegistry, String name) {
         final Properties properties = new Properties();
         for (Map.Entry<String, String> property : this.properties.entrySet()) {
             properties.setProperty(property.getKey(), property.getValue());
@@ -836,6 +837,6 @@ public class DataSourceFactory implements PooledDataSourceFactory {
             poolConfig.setValidatorClassName(validatorClassName.get());
         }
 
-        return new ManagedPooledDataSource(poolConfig);
+        return new ManagedPooledDataSource(poolConfig, metricRegistry);
     }
 }

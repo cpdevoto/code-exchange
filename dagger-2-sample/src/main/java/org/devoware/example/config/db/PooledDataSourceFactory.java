@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.devoware.example.util.Duration;
 
+import com.codahale.metrics.MetricRegistry;
+
 /**
  * Interface of a factory that produces JDBC data sources
  * backed by the connection pool.
@@ -68,8 +70,9 @@ public interface PooledDataSourceFactory {
      * Builds a new JDBC data source backed by the connection pool
      * and managed by Dropwizard.
      *
+     * @param metricRegistry the application metric registry
      * @param name           name of the connection pool
      * @return a new JDBC data source as {@code ManagedDataSource}
      */
-    ManagedDataSource build(String name);
+    ManagedDataSource build(MetricRegistry metricRegistry, String name);
 }
