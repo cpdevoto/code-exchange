@@ -1,12 +1,9 @@
 package org.devoware.example;
 
-import java.io.IOException;
-
 import javax.sql.DataSource;
 import javax.validation.Validator;
 
 import org.devoware.configuration.ClasspathConfigurationSourceProvider;
-import org.devoware.configuration.ConfigurationException;
 import org.devoware.configuration.ConfigurationFactory;
 import org.devoware.configuration.ConfigurationSourceProvider;
 import org.devoware.configuration.YamlConfigurationFactory;
@@ -14,8 +11,8 @@ import org.devoware.configuration.validation.Validators;
 import org.devoware.example.config.ConfigurationModule;
 import org.devoware.example.config.Dagger2SampleConfiguration;
 import org.devoware.example.dao.UserDao;
-import org.devoware.example.lifecycle.Managed;
-import org.devoware.example.setup.Environment;
+import org.devoware.homonculus.lifecycle.Managed;
+import org.devoware.homonculus.setup.Environment;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;

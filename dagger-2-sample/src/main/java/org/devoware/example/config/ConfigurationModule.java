@@ -1,11 +1,10 @@
 package org.devoware.example.config;
 
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.validation.Validator;
 
-import org.devoware.example.config.db.ManagedDataSource;
-import org.devoware.example.setup.Environment;
+import org.devoware.config.db.DataSourceFactory;
+import org.devoware.homonculus.setup.Environment;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -33,10 +32,8 @@ public class ConfigurationModule {
 
   @Provides
   @Singleton
-  public DataSource provideDataSource() {
-    ManagedDataSource dataSource = config.getDataSourceFactory().build(environment.metrics(), "<default>");
-    environment.manage(dataSource);
-    return dataSource;
+  public DataSourceFactory provideDataSourceFactory() {
+    return config.getDataSourceFactory();
   }
   
   @Provides
