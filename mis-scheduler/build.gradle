@@ -48,10 +48,13 @@ dependencies {
 }
 
 task deleteLibraries(type: Delete) {
-   delete file('lib').listFiles()
+   delete file('lib').listFiles(), file('logs')
 }
 
 task copyLibraries(type: Copy) {
+   doFirst{
+      file('logs').mkdirs()
+   }
    from configurations.compile, configurations.runtime
    into 'lib'
 }

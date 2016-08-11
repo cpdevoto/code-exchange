@@ -1,6 +1,7 @@
 package com.doradosystems.mis.scheduler;
 
 import org.devoware.homonculus.Application;
+import org.devoware.homonculus.lifecycle.Managed;
 import org.devoware.homonculus.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,6 @@ import com.doradosystems.mis.scheduler.setup.EnvironmentModule;
 
 public class MisSchedulerApplication extends Application<MisSchedulerConfiguration> {
 
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MisSchedulerApplication.class);
   
   private MisSchedulerComponent component;
@@ -28,6 +28,11 @@ public class MisSchedulerApplication extends Application<MisSchedulerConfigurati
         .configurationModule(new ConfigurationModule(config))
         .environmentModule(new EnvironmentModule(env))
         .build();
-    System.out.println(component.getDataSource().getClass().getName());
+    component.initDataSource();
+    StringBuilder buf = new StringBuilder("The following resources are being managed by this application:");
+    for (Managed managed: env.getManagedResources()) {
+      buf.append("\n\t").append(managed.getClass().getName());
+    }
+    log.info(buf.toString());
   }
 }

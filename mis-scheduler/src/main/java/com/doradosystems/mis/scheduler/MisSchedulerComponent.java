@@ -16,9 +16,6 @@ import dagger.Component;
 @Component(modules = {ConfigurationModule.class, DatabaseConfigurationModule.class, EnvironmentModule.class })
 public interface MisSchedulerComponent {
   
-  MisSchedulerConfiguration getConfiguration();
-  
-  DataSource getDataSource();
-  
-  Environment getEnvironment();
+  DataSource initDataSource();
+
 }
