@@ -121,7 +121,7 @@ tasks.eclipseJdt {
 		<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.devoware.bootstrap.Bootstrap"/>
 		<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="start mis-scheduler.yml"/>
 		<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="mis-scheduler"/>
-		<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dbootstrap.class=com.doradosystems.mis.scheduler.MisSchedulerApplication"/>
+		<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dbootstrap.class=com.doradosystems.mis.scheduler.MisSchedulerApplication -Duser.timezone=GMT -Dlog.dir=../logs -Dlog.extra.appender=FILE"/>
 		<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="\${workspace_loc:mis-scheduler/bin}"/>
 		</launchConfiguration>
 	   """.stripIndent()    
@@ -147,7 +147,7 @@ tasks.eclipseJdt {
 		<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.devoware.bootstrap.Bootstrap"/>
 		<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="stop"/>
 		<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="mis-scheduler"/>
-		<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dbootstrap.class=com.doradosystems.mis.scheduler.MisSchedulerApplication"/>
+		<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dbootstrap.class=com.doradosystems.mis.scheduler.MisSchedulerApplication -Duser.timezone=GMT -Dlog.dir=../logs -Dlog.extra.appender=NOP"/>
 		<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="\${workspace_loc:mis-scheduler/bin}"/>
 		</launchConfiguration>
 	   """.stripIndent()    

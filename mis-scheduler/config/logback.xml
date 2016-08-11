@@ -26,8 +26,10 @@
     </encoder>
   </appender>
 
+  <appender name="NOP" class="ch.qos.logback.core.helpers.NOPAppender" />
+ 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
-    <appender-ref ref="FILE" />
+    <appender-ref ref="${log.extra.appender}" />
   </root>
 </configuration>

@@ -10,6 +10,9 @@ import com.doradosystems.mis.scheduler.config.ConfigurationModule;
 import com.doradosystems.mis.scheduler.config.MisSchedulerConfiguration;
 import com.doradosystems.mis.scheduler.setup.EnvironmentModule;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.util.StatusPrinter;
+
 public class MisSchedulerApplication extends Application<MisSchedulerConfiguration> {
 
   private static final Logger log = LoggerFactory.getLogger(MisSchedulerApplication.class);
@@ -34,5 +37,8 @@ public class MisSchedulerApplication extends Application<MisSchedulerConfigurati
       buf.append("\n\t").append(managed.getClass().getName());
     }
     log.info(buf.toString());
+    
+    LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+    StatusPrinter.print(lc);
   }
 }
