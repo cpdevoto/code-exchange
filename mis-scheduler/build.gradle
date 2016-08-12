@@ -35,7 +35,8 @@ dependencies {
                 'postgresql:postgresql:9.1-901-1.jdbc4',
                 'io.dropwizard.metrics:metrics-core:3.1.0',
                 'io.dropwizard.metrics:metrics-healthchecks:3.1.0',
-                'io.dropwizard.metrics:metrics-jvm:3.1.0'
+                'io.dropwizard.metrics:metrics-jvm:3.1.0',
+                'org.quartz-scheduler:quartz:2.2.3'
                 
     
     compileOnly 'com.google.code.findbugs:annotations:3.0.1',

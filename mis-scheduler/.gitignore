@@ -38,3 +38,4 @@ build/
 *.launch
 lib/
 logs/
+classes/

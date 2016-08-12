@@ -31,7 +31,7 @@ public class MisSchedulerApplication extends Application<MisSchedulerConfigurati
         .configurationModule(new ConfigurationModule(config))
         .environmentModule(new EnvironmentModule(env))
         .build();
-    component.initDataSource();
+    component.initialize();
     StringBuilder buf = new StringBuilder("The following resources are being managed by this application:");
     for (Managed managed: env.getManagedResources()) {
       buf.append("\n\t").append(managed.getClass().getName());

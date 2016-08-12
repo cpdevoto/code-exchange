@@ -1,21 +1,27 @@
 package com.doradosystems.mis.scheduler;
 
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 
 import org.devoware.config.db.DatabaseConfigurationModule;
-import org.devoware.homonculus.setup.Environment;
 
 import com.doradosystems.mis.scheduler.config.ConfigurationModule;
-import com.doradosystems.mis.scheduler.config.MisSchedulerConfiguration;
+import com.doradosystems.mis.scheduler.dao.DaoModule;
+import com.doradosystems.mis.scheduler.scheduling.SchedulingModule;
+import com.doradosystems.mis.scheduler.scheduling.job.JobModule;
 import com.doradosystems.mis.scheduler.setup.EnvironmentModule;
 
 import dagger.Component;
 
 @Singleton
-@Component(modules = {ConfigurationModule.class, DatabaseConfigurationModule.class, EnvironmentModule.class })
+@Component(modules = {
+    ConfigurationModule.class, 
+    DatabaseConfigurationModule.class, 
+    EnvironmentModule.class, 
+    DaoModule.class, 
+    SchedulingModule.class,
+    JobModule.class})
 public interface MisSchedulerComponent {
   
-  DataSource initDataSource();
+  JobModule.InitializationStatus initialize();
 
 }
