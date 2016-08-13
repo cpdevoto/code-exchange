@@ -48,13 +48,6 @@ public class JobModule {
   @Provides
   @Singleton
   @Nonnull
-  public DdeCrawlerJob provideDdeCrawlerJob(@Nonnull DdeCrawlerJobImpl job) {
-    return job;
-  }
-
-  @Provides
-  @Singleton
-  @Nonnull
   public Map<String, Trigger> provideJobTriggers(@Nonnull List<JobConfiguration> jobConfigs) {
     final Map<String, Trigger> triggersByJobName = Maps.newHashMap();
     jobConfigs.forEach((config) -> {
