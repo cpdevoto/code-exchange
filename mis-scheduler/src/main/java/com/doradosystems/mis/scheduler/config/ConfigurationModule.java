@@ -39,4 +39,12 @@ public class ConfigurationModule {
   public DataSourceFactory provideDataSourceFactory() {
     return config.getDataSourceFactory();
   }
+
+  @Provides
+  @Singleton
+  @Nonnull
+  public RabbitMqConfiguration provideRabbitMqConfiguration() {
+    return config.getRabbitMq();
+  }
+  
 }

@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 
 import org.devoware.config.db.util.DataAccessException;
 
-import com.doradosystems.mis.scheduler.model.Operator;
+import com.doradosystems.mis.agent.model.Operator;
 import com.google.common.collect.Lists;
 
 public class JdbcOperatorDao implements OperatorDao {

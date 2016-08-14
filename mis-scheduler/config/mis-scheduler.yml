@@ -1,6 +1,7 @@
 jobs:
+  # A list of jobs to be executed by the scheduler, each including a cron recurrence rule
   - name: ddeCrawler
-    recurrenceRule: 0 0/2 8-23 * * ?
+    recurrenceRule: 0 0/1 * * * ? # fire crawler every minute
 
 database:
   # the name of your JDBC driver
@@ -23,20 +24,45 @@ database:
   maxWaitForConnection: 1s
 
   # the SQL query to run when validating a connection's liveness
-  validationQuery: "/* MyService Health Check */ SELECT 1"
+  validationQuery: "/* Database Health Check */ SELECT 1"
+
+  # the initial number of connections
+  initialSize: 1
 
   # the minimum number of connections to keep open
-  minSize: 8
+  minSize: 1
 
   # the maximum number of connections to keep open
-  maxSize: 32
+  maxSize: 3
 
   # whether or not idle connections should be validated
-  checkConnectionWhileIdle: false
+  checkConnectionWhileIdle: true
 
   # the amount of time to sleep between runs of the idle connection validation, abandoned cleaner and idle pool resizing
   evictionInterval: 10s
 
   # the minimum amount of time an connection must sit idle in the pool before it is eligible for eviction
   minIdleTime: 1 minute
+
+rabbitMq:
+  # the host that is running the RabbitMq server
+  host: localhost
+
+  # the port that the RabbitMq server is listening on
+  port: 5672
+
+  # the username
+  user: guest
+
+  # the password
+  password: guest
+
+  # the virtual host
+  virtualHost: /
+
+  # the exchange name
+  exchange:  
+
+  # the queue name
+  queue: task_queue
 

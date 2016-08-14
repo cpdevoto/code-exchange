@@ -18,6 +18,11 @@ public class MisSchedulerConfiguration {
   private DataSourceFactory database;
 
   @Valid
+  @NotNull
+  @JsonProperty
+  private RabbitMqConfiguration rabbitMq;
+
+  @Valid
   @NotEmpty
   @JsonProperty
   private List<JobConfiguration> jobs;
@@ -26,7 +31,13 @@ public class MisSchedulerConfiguration {
       return database;
   }
   
+  public RabbitMqConfiguration getRabbitMq() {
+    return rabbitMq;
+  }
+  
   public List<JobConfiguration> getJobs() {
     return ImmutableList.copyOf(jobs);
   }
+  
+  
 }

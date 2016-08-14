@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 
 import org.devoware.config.db.util.DataAccessException;
 
-import com.doradosystems.mis.scheduler.model.Npi;
+import com.doradosystems.mis.agent.model.Npi;
 import com.google.common.collect.Lists;
 
 public class JdbcNpiDao implements NpiDao {
