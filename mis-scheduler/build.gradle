@@ -94,7 +94,7 @@ eclipse.classpath.file {
     whenMerged { classpath ->
         def sourcePaths = []
         classpath.entries.each {entry ->
-           if (entry.hasProperty('sourcePath')) {
+           if (entry.hasProperty('sourcePath') && entry.sourcePath.hasProperty('path')) {
              sourcePaths.add(entry.sourcePath.path)
            }
         }
