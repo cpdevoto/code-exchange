@@ -1,0 +1,70 @@
+workers:
+  # The number of worker threads to run
+  numWorkers: 5
+
+  # The maximum number of jobs to store in the job queue before blocking
+  maxJobsInQueue: 100
+
+database:
+  # the name of your JDBC driver
+  driverClass: org.postgresql.Driver
+
+  # the username
+  user: cdevoto
+
+  # the password
+  password: 
+
+  # the JDBC URL
+  url: jdbc:postgresql://localhost:5432/cdevoto
+
+  # any properties specific to your JDBC driver:
+  properties:
+    charSet: UTF-8
+
+  # the maximum amount of time to wait on an empty pool before throwing an exception
+  maxWaitForConnection: 1s
+
+  # the SQL query to run when validating a connection's liveness
+  validationQuery: "/* Database Health Check */ SELECT 1"
+
+  # the initial number of connections
+  initialSize: 1
+
+  # the minimum number of connections to keep open
+  minSize: 1
+
+  # the maximum number of connections to keep open
+  maxSize: 3
+
+  # whether or not idle connections should be validated
+  checkConnectionWhileIdle: true
+
+  # the amount of time to sleep between runs of the idle connection validation, abandoned cleaner and idle pool resizing
+  evictionInterval: 10s
+
+  # the minimum amount of time an connection must sit idle in the pool before it is eligible for eviction
+  minIdleTime: 1 minute
+
+rabbitMq:
+  # the host that is running the RabbitMq server
+  host: localhost
+
+  # the port that the RabbitMq server is listening on
+  port: 5672
+
+  # the username
+  user: guest
+
+  # the password
+  password: guest
+
+  # the virtual host
+  virtualHost: /
+
+  # the exchange name
+  exchange:  
+
+  # the queue name
+  queue: task_queue
+

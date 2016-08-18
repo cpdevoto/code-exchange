@@ -20,27 +20,24 @@ import org.quartz.spi.JobFactory;
 import org.quartz.spi.TriggerFiredBundle;
 
 import com.doradosystems.mis.scheduler.config.JobConfiguration;
-import com.doradosystems.mis.scheduler.scheduling.SchedulerCreationException;
+import com.doradosystems.mis.scheduler.scheduling.job.claims.ClaimRetrievalJobModule;
 import com.google.common.collect.Maps;
 
 import dagger.Module;
 import dagger.Provides;
 
-@Module
+@Module(includes=ClaimRetrievalJobModule.class)
 public class JobModule {
   
   @Provides
   @Singleton
   @Nonnull
-  public JobFactory provideJobFactory(@Nonnull final DdeCrawlerJob ddeCrawlerJob) {
+  public JobFactory provideJobFactory(@Nonnull final Map<String, Job> jobs) {
     return new JobFactory() {
       @Override
       public Job newJob(TriggerFiredBundle bundle, Scheduler scheduler) throws SchedulerException {
-        switch (bundle.getJobDetail().getKey().getName()) {
-          case "ddeCrawler":
-          default:  
-              return ddeCrawlerJob;
-        }
+        Job job = jobs.get(bundle.getJobDetail().getKey().getName());
+        return job;
       }
     };
   }
@@ -65,18 +62,23 @@ public class JobModule {
   @Singleton
   @Nonnull
   public InitializationStatus provideInitializationStatus(@Nonnull Scheduler scheduler,
-     @Nonnull Map<String,Trigger> triggersByJobName) {
-    JobDetail jobDetail = newJob(DdeCrawlerJob.class).withIdentity("ddeCrawler").build();
-    
-    try {
-      Trigger trigger = triggersByJobName.get("ddeCrawler");
-      if (trigger == null) {
-        throw new SchedulerCreationException("The ddeCrawler job is not configured.");
+     @Nonnull Map<String, Class<? extends Job>> jobClassesByJobName, @Nonnull Map<String,Trigger> triggersByJobName) {
+    for (String jobName : triggersByJobName.keySet()) {
+      Class<? extends Job> jobClass = jobClassesByJobName.get(jobName);
+      if (jobClass == null) {
+        throw new JobInitializationException("No job class mapping defined for the job named " + jobName);
       }
-      scheduler.scheduleJob(jobDetail, trigger);
-    } catch (SchedulerException e) {
-      throw new SchedulerCreationException(e);
-    } 
+      JobDetail jobDetail = newJob(jobClass).withIdentity(jobName).build();
+      Trigger trigger = triggersByJobName.get(jobName);
+      if (trigger == null) {
+        throw new JobInitializationException("A trigger should exist for the job named " + jobName);
+      }
+      try {
+        scheduler.scheduleJob(jobDetail, trigger);
+      } catch (SchedulerException e) {
+        throw new JobInitializationException(e);
+      }
+    }
     return InitializationStatus.COMPLETED;
   }
 

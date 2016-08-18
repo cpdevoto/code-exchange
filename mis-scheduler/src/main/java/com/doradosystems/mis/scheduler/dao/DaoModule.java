@@ -19,7 +19,7 @@ public class DaoModule {
   @Provides
   @Singleton
   @Nonnull
-  public NpiDao provideNpiDao(JdbcNpiDao dao) {
+  public NationalProviderIdentifierDao provideNpiDao(JdbcNationalProviderIdentifierDao dao) {
     return dao;
   }
 }

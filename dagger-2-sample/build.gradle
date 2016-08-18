@@ -24,7 +24,7 @@ dependencies {
                 'javax.validation:validation-api:1.1.0.Final',
                 'org.hibernate:hibernate-validator:5.2.4.Final',
                 'org.glassfish:javax.el:3.0.0',
-                'com.google.dagger:dagger:2.2',
+                'com.google.dagger:dagger:2.6',
                 'org.devoware:yaml-configuration:1.0',
                 'org.devoware:database-config:1.0',
                 'org.devoware:homonculus:1.0',
@@ -37,7 +37,7 @@ dependencies {
                 
     
     compileOnly 'com.google.code.findbugs:annotations:3.0.1',
-                'com.google.dagger:dagger-compiler:2.2'            
+                'com.google.dagger:dagger-compiler:2.6'            
                 
              
     testCompile 'junit:junit:4.12', 

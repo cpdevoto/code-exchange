@@ -1,6 +1,6 @@
 jobs:
   # A list of jobs to be executed by the scheduler, each including a cron recurrence rule
-  - name: ddeCrawler
+  - name: claim-retrieval
     recurrenceRule: 0 0/1 * * * ? # fire crawler every minute
 
 database:

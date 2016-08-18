@@ -22,7 +22,7 @@ export SCHEDULER_CLASSPATH=$SCHEDULER_LIB/bootstrap-1.0.jar
 
 export SCHEDULER_OPTS="-Dbootstrap.home=$SCHEDULER_HOME -Dbootstrap.class=com.doradosystems.mis.scheduler.MisSchedulerApplication -Duser.timezone=GMT -Dlog.dir=$SCHEDULER_LOG"
 
-export JMX_PORT=50844
+export JMX_PORT=50845
 
 
 echo --------------------------

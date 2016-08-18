@@ -2,10 +2,6 @@ package org.devoware.traveller.world.model;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
-
-import javax.annotation.Nonnull;
-
 public class World {
   private final Hex hex;
   private final Starport starport;

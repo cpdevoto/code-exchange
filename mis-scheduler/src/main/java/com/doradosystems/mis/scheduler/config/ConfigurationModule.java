@@ -7,6 +7,8 @@ import javax.inject.Singleton;
 
 import org.devoware.config.db.DataSourceFactory;
 
+import com.doradosystem.messaging.config.RabbitMqConfiguration;
+
 import dagger.Module;
 import dagger.Provides;
 

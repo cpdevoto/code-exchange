@@ -21,10 +21,10 @@ public class SchedulingModule {
   @Nonnull
   public Scheduler provideScheduler(@Nonnull Environment env, @Nonnull JobFactory jobFactory) {
     try {
-    SchedulerFactory schedulerFactory = new StdSchedulerFactory();
-    Scheduler scheduler = schedulerFactory.getScheduler();
-    scheduler.setJobFactory(jobFactory);
-    env.manage(new ManagedScheduler(scheduler));
+      SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+      Scheduler scheduler = schedulerFactory.getScheduler();
+      scheduler.setJobFactory(jobFactory);
+      env.manage(new ManagedScheduler(scheduler));
     return scheduler;
     } catch (SchedulerException ex) {
       throw new SchedulerCreationException(ex);
