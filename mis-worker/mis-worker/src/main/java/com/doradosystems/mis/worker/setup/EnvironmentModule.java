@@ -1,9 +1,13 @@
 package com.doradosystems.mis.worker.setup;
 
+import static com.doradosystems.mis.worker.WorkerQualifiers.JOB_QUEUE;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.validation.Validator;
@@ -58,9 +62,16 @@ public class EnvironmentModule {
     return environment.getValidator();
   }
   
+  @Provides @Named(JOB_QUEUE)
+  @Singleton
+  @Nonnull
+  public BlockingQueue<Runnable> provideJobQueue(WorkerConfiguration config) {
+    return new LinkedBlockingQueue<>(config.getMaxJobsInQueue());
+  }
+  
   @Provides
   @Singleton
-  public ExecutorService provideExecutorService(WorkerConfiguration config, @Named("job-queue") BlockingQueue<Runnable> jobQueue) {
+  public ExecutorService provideExecutorService(WorkerConfiguration config, @Named(JOB_QUEUE) BlockingQueue<Runnable> jobQueue) {
     final String threadName = "MIS Worker Thread";
     final String threadNamePattern = threadName + "-%d";
     

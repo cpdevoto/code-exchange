@@ -1,5 +1,6 @@
 package com.doradosystems.mis.worker.processor.job.claims;
 
+import static com.doradosystems.mis.worker.WorkerQualifiers.JOB_QUEUE_COUNTER;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class ClaimRetrievalJobFactory implements JobFactory {
   
   @Inject
   public ClaimRetrievalJobFactory(@Nonnull ObjectMapper mapper, 
-      @Named("job-queue-counter") @Nonnull Counter jobQueueCounter) {
+      @Named(JOB_QUEUE_COUNTER) @Nonnull Counter jobQueueCounter) {
     this.mapper = requireNonNull(mapper);
     this.jobQueueCounter = requireNonNull(jobQueueCounter);
   }

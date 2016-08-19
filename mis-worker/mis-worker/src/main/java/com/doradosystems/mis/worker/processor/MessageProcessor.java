@@ -1,5 +1,6 @@
 package com.doradosystems.mis.worker.processor;
 
+import static com.doradosystems.mis.worker.WorkerQualifiers.JOB_QUEUE_COUNTER;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.ExecutorService;
@@ -25,7 +26,7 @@ public class MessageProcessor {
 
   @Inject
   public MessageProcessor(@Nonnull Jobs jobs, @Nonnull ExecutorService executorService, 
-      @Named("job-queue-counter") Counter queueCounter) {
+      @Named(JOB_QUEUE_COUNTER) Counter queueCounter) {
     this.jobs = requireNonNull(jobs);
     this.executorService = requireNonNull(executorService);
     this.queueCounter = requireNonNull(queueCounter);
