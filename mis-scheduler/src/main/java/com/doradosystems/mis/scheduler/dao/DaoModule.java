@@ -12,14 +12,21 @@ public class DaoModule {
   @Provides
   @Singleton
   @Nonnull
-  public OperatorDao provideUserDao(JdbcOperatorDao dao) {
+  public OperatorDao provideOperatorDao(JdbcOperatorDao dao) {
     return dao;
   }
 
   @Provides
   @Singleton
   @Nonnull
-  public NationalProviderIdentifierDao provideNpiDao(JdbcNationalProviderIdentifierDao dao) {
+  public OperatorNpiDao provideOperatorNpiDao(JdbcOperatorNpiDao dao) {
+    return dao;
+  }
+
+  @Provides
+  @Singleton
+  @Nonnull
+  public NpiDao provideNpiDao(JdbcNpiDao dao) {
     return dao;
   }
 }

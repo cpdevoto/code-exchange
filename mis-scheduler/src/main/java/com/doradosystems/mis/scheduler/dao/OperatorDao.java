@@ -6,7 +6,7 @@ import com.doradosystems.mis.agent.model.Operator;
 
 public interface OperatorDao {
   
-  public List<Operator> getOperators();
+  public List<Operator> getAll();
   
 
 }

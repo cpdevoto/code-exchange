@@ -15,39 +15,39 @@ import javax.sql.DataSource;
 
 import org.devoware.config.db.util.DataAccessException;
 
-import com.doradosystems.mis.agent.model.Operator;
+import com.doradosystems.mis.agent.model.NationalProviderIdentifier;
 import com.google.common.collect.Lists;
 
-public class JdbcOperatorDao implements OperatorDao {
+public class JdbcNpiDao implements NpiDao {
 
   private final DataSource dataSource;
 
   @Inject
-  public JdbcOperatorDao(@Nonnull DataSource dataSource) {
+  public JdbcNpiDao(@Nonnull DataSource dataSource) {
     this.dataSource = requireNonNull(dataSource);
   }
 
   @Override
   @Nonnull
-  public List<Operator> getAll() {
-    List<Operator> operators = Lists.newArrayList();
-    String sql = "SELECT id, user_name, password FROM operators";
+  public List<NationalProviderIdentifier> getAll() {
+    List<NationalProviderIdentifier> npis = Lists.newArrayList();
+    String sql = "SELECT id, id_number, region_code FROM npis";
     try (Connection conn = dataSource.getConnection()) {
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         try (ResultSet resultSet = stmt.executeQuery()) {
-          operators.addAll(processList(resultSet, (rowNum, rs) -> {
-            return Operator.builder()
+          npis.addAll(processList(resultSet, (rowNum, rs) -> {
+            return NationalProviderIdentifier.builder()
                 .withId(rs.getLong("id"))
-                .withUserName(rs.getString("user_name"))
-                .withPassword(rs.getString("password"))
+                .withIdNumber(rs.getLong("id_number"))
+                .withRegionCode(rs.getString("region_code"))
                 .build();
           }));
         }
       }
     } catch (SQLException e) {
-      throw new DataAccessException("A problem occurred while attempting to retrieve operators", e);
+      throw new DataAccessException("A problem occurred while attempting to retrieve NPIs", e);
     }
-    return operators;
+    return npis;
   }
 
 
