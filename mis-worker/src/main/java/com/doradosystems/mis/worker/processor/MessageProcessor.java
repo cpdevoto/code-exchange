@@ -26,7 +26,7 @@ public class MessageProcessor {
 
   @Inject
   public MessageProcessor(@Nonnull Jobs jobs, @Nonnull ExecutorService executorService, 
-      @Named(JOB_QUEUE_COUNTER) Counter queueCounter) {
+      @Nonnull @Named(JOB_QUEUE_COUNTER) Counter queueCounter) {
     this.jobs = requireNonNull(jobs);
     this.executorService = requireNonNull(executorService);
     this.queueCounter = requireNonNull(queueCounter);

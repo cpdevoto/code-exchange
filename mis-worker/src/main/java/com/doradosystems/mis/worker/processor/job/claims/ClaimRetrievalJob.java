@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.doradosystems.mis.agent.model.Claim;
 import com.doradosystems.mis.agent.model.ClaimRetrievalTask;
 import com.doradosystems.mis.worker.dao.ClaimDao;
@@ -22,13 +23,15 @@ public class ClaimRetrievalJob implements Runnable {
   private final DdeService ddeService;
   private final ClaimDao claimDao;
   private final Counter jobQueueCounter;
+  private final Meter claimsRetrieved;
 
   public ClaimRetrievalJob(@Nonnull ClaimRetrievalTask task, @Nonnull DdeService ddeService,
-      @Nonnull ClaimDao claimDao, @Nonnull Counter jobQueueCounter) {
+      @Nonnull ClaimDao claimDao, @Nonnull Counter jobQueueCounter, @Nonnull Meter claimsRetrieved) {
     this.task = requireNonNull(task);
     this.ddeService = requireNonNull(ddeService);
     this.claimDao = requireNonNull(claimDao);
     this.jobQueueCounter = requireNonNull(jobQueueCounter);
+    this.claimsRetrieved = requireNonNull(claimsRetrieved);
   }
 
   @Override
@@ -36,6 +39,7 @@ public class ClaimRetrievalJob implements Runnable {
     jobQueueCounter.dec();
     try {
       List<Claim> claims = ddeService.getClaims(task);
+      claimsRetrieved.mark(claims.size());
       for (Claim claim : claims) {
         claimDao.insertOrUpdate(claim);
       }
