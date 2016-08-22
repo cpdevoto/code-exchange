@@ -118,6 +118,10 @@ public class ClaimRetrievalJob implements Job {
     // We use completable futures to retrieve the list of operators, the list of npis, and the list
     // of operator npis in separate threads, and then push the results of these operations into the getTasks
     // method.
+    // TODO: If the the system grows to include many thousands of operators and npis, this approach will not scale, since it requires 
+    // that all operators and npis be loaded into memory. A better approach would be to create an operator_npi_view in the database and
+    // perform a series of paginated queries to only load a small subset of the data into memory at a time. I decided it wasn't worth
+    // doing for a POC.
     try {
       return getOperators().thenCombineAsync(getNationalProviderIdentifiers(), this::generateLookups)
           .thenCombineAsync(getOperatorNpis(), this::getTasks)  
