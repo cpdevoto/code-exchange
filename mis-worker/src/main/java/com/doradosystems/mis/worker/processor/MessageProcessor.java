@@ -9,11 +9,11 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.devoware.homonculus.messaging.input.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Counter;
-import com.doradosystems.messaging.input.Message;
 import com.doradosystems.mis.worker.processor.job.Jobs;
 import com.google.common.eventbus.Subscribe;
 

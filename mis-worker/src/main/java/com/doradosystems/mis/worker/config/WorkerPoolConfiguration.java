@@ -3,10 +3,10 @@ package com.doradosystems.mis.worker.config;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import org.devoware.validators.util.Duration;
-import org.devoware.validators.validation.ComparisonOperator;
-import org.devoware.validators.validation.FieldCompare;
-import org.devoware.validators.validation.MinDuration;
+import org.devoware.homonculus.validators.util.Duration;
+import org.devoware.homonculus.validators.validation.ComparisonOperator;
+import org.devoware.homonculus.validators.validation.FieldCompare;
+import org.devoware.homonculus.validators.validation.MinDuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

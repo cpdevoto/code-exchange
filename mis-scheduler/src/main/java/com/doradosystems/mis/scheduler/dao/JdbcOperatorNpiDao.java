@@ -1,7 +1,7 @@
 package com.doradosystems.mis.scheduler.dao;
 
 import static java.util.Objects.requireNonNull;
-import static org.devoware.config.db.util.DaoUtils.processList;
+import static org.devoware.homonculus.database.util.DaoUtils.processList;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.sql.DataSource;
 
-import org.devoware.config.db.util.DataAccessException;
+import org.devoware.homonculus.database.util.DataAccessException;
 
 import com.doradosystems.mis.agent.model.OperatorNpi;
 import com.google.common.collect.Lists;

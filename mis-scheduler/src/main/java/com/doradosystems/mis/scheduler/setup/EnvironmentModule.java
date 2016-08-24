@@ -3,7 +3,7 @@ package com.doradosystems.mis.scheduler.setup;
 import javax.inject.Singleton;
 import javax.validation.Validator;
 
-import org.devoware.homonculus.setup.Environment;
+import org.devoware.homonculus.core.setup.Environment;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;

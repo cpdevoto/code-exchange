@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import javax.annotation.Nonnull;
 
-import org.devoware.homonculus.lifecycle.Managed;
+import org.devoware.homonculus.core.lifecycle.Managed;
 import org.quartz.Scheduler;
 
 public class ManagedScheduler implements Managed {

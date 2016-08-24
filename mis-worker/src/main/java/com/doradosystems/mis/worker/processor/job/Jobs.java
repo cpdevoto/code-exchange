@@ -8,10 +8,10 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
+import org.devoware.homonculus.messaging.input.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.doradosystems.messaging.input.Message;
 import com.doradosystems.mis.agent.model.messaging.MessageHeaders;
 import com.rabbitmq.client.BasicProperties;
 

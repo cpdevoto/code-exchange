@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotNull;
 
-import org.devoware.validators.util.Duration;
-import org.devoware.validators.validation.ContainsKeys;
-import org.devoware.validators.validation.MinDuration;
+import org.devoware.homonculus.validators.util.Duration;
+import org.devoware.homonculus.validators.validation.ContainsKeys;
+import org.devoware.homonculus.validators.validation.MinDuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;

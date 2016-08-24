@@ -10,10 +10,11 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.devoware.homonculus.messaging.input.Message;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import com.doradosystems.messaging.input.Message;
 import com.doradosystems.mis.agent.model.ClaimRetrievalTask;
 import com.doradosystems.mis.worker.dao.ClaimDao;
 import com.doradosystems.mis.worker.ddeservice.DdeService;

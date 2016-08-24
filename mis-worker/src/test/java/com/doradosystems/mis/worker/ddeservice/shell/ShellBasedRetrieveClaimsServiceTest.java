@@ -21,7 +21,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Scanner;
 
-import org.devoware.validators.util.Duration;
+import org.devoware.homonculus.validators.util.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

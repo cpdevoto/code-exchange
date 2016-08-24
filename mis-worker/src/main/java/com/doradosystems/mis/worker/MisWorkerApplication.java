@@ -1,8 +1,8 @@
 package com.doradosystems.mis.worker;
 
-import org.devoware.homonculus.Application;
-import org.devoware.homonculus.lifecycle.Managed;
-import org.devoware.homonculus.setup.Environment;
+import org.devoware.homonculus.core.Application;
+import org.devoware.homonculus.core.lifecycle.Managed;
+import org.devoware.homonculus.core.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

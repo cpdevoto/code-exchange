@@ -1,8 +1,8 @@
 package com.doradosystems.mis.worker.processor;
 
 import static com.codahale.metrics.MetricRegistry.name;
-import static com.doradosystem.messaging.MessageExchangeQualifiers.INPUT_EVENT_BUS;
 import static com.doradosystems.mis.worker.WorkerQualifiers.JOB_QUEUE_COUNTER;
+import static org.devoware.homonculus.messaging.MessageExchangeQualifiers.INPUT_EVENT_BUS;
 
 import java.util.concurrent.ExecutorService;
 
@@ -10,10 +10,11 @@ import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.devoware.homonculus.messaging.input.InputChannel;
+import org.devoware.homonculus.messaging.output.OutputChannel;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
-import com.doradosystems.messaging.input.InputChannel;
-import com.doradosystems.messaging.output.OutputChannel;
 import com.google.common.eventbus.EventBus;
 
 import dagger.Module;

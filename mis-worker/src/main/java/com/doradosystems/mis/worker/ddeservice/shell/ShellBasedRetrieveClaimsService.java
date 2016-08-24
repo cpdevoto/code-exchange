@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.xml.bind.DatatypeConverter;
 
-import org.devoware.validators.util.Duration;
+import org.devoware.homonculus.validators.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

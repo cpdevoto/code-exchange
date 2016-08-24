@@ -2,10 +2,10 @@ package com.doradosystems.mis.scheduler;
 
 import javax.inject.Singleton;
 
-import org.devoware.config.db.DatabaseConfigurationModule;
+import org.devoware.homonculus.database.DatabaseConfigurationModule;
+import org.devoware.homonculus.messaging.MessageExchangeModule;
+import org.devoware.homonculus.messaging.output.OutputChannelModule;
 
-import com.doradosystem.messaging.MessageExchangeModule;
-import com.doradosystems.messaging.output.OutputChannelModule;
 import com.doradosystems.mis.scheduler.config.ConfigurationModule;
 import com.doradosystems.mis.scheduler.dao.DaoModule;
 import com.doradosystems.mis.scheduler.scheduling.SchedulingModule;

@@ -5,10 +5,10 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.devoware.config.db.DataSourceFactory;
+import org.devoware.homonculus.database.DataSourceFactory;
+import org.devoware.homonculus.messaging.config.RabbitMqConfiguration;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import com.doradosystem.messaging.config.RabbitMqConfiguration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 

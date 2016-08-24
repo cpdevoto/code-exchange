@@ -3,9 +3,9 @@ package com.doradosystems.mis.worker.config;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.devoware.config.db.DataSourceFactory;
+import org.devoware.homonculus.database.DataSourceFactory;
+import org.devoware.homonculus.messaging.config.RabbitMqConfiguration;
 
-import com.doradosystem.messaging.config.RabbitMqConfiguration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ApplicationConfiguration {

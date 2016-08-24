@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
+import org.devoware.homonculus.messaging.output.OutputChannel;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.doradosystems.messaging.output.OutputChannel;
 import com.doradosystems.mis.agent.model.ClaimRetrievalTask;
 import com.doradosystems.mis.agent.model.NationalProviderIdentifier;
 import com.doradosystems.mis.agent.model.Operator;

@@ -3,7 +3,7 @@ package com.doradosystems.mis.scheduler.scheduling;
 import javax.annotation.Nonnull;
 import javax.inject.Singleton;
 
-import org.devoware.homonculus.setup.Environment;
+import org.devoware.homonculus.core.setup.Environment;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;

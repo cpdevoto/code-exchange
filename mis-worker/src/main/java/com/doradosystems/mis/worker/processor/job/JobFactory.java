@@ -1,6 +1,6 @@
 package com.doradosystems.mis.worker.processor.job;
 
-import com.doradosystems.messaging.input.Message;
+import org.devoware.homonculus.messaging.input.Message;
 
 public interface JobFactory {
 

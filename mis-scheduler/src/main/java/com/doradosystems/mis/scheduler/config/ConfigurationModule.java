@@ -5,9 +5,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.inject.Singleton;
 
-import org.devoware.config.db.DataSourceFactory;
-
-import com.doradosystem.messaging.config.RabbitMqConfiguration;
+import org.devoware.homonculus.database.DataSourceFactory;
+import org.devoware.homonculus.messaging.config.RabbitMqConfiguration;
 
 import dagger.Module;
 import dagger.Provides;

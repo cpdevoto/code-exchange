@@ -2,11 +2,11 @@ package com.doradosystems.mis.worker;
 
 import javax.inject.Singleton;
 
-import org.devoware.config.db.DatabaseConfigurationModule;
+import org.devoware.homonculus.database.DatabaseConfigurationModule;
+import org.devoware.homonculus.messaging.MessageExchangeModule;
+import org.devoware.homonculus.messaging.input.InputChannelModule;
+import org.devoware.homonculus.messaging.output.OutputChannelModule;
 
-import com.doradosystem.messaging.MessageExchangeModule;
-import com.doradosystems.messaging.input.InputChannelModule;
-import com.doradosystems.messaging.output.OutputChannelModule;
 import com.doradosystems.mis.worker.config.ConfigurationModule;
 import com.doradosystems.mis.worker.dao.DaoModule;
 import com.doradosystems.mis.worker.ddeservice.DdeServiceModule;
