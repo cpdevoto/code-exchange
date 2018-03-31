@@ -104,12 +104,20 @@ alias postgres_stop='brew services stop postgres'
 alias postgres_start='brew services start postgres'
 
 alias dev_pg='ssh webapp0.dc.res0.local -L 5403:postgres0-db.dc.res0.local:5432'
-alias dev_tsdb='ssh webapp0.dc.res0.local -L 4242:tsdbone.dc.res0.local:80'
+alias dev_tsdb='ssh -L 4242:tsdbone.dc.res0.local:80 bigdata-master2.dc.res0.local'
 alias tests='rake RAILS_ENV=test db:test:prepare && rake RAILS_ENV=test spec'
 alias dev_rails='rails s -p 5003 --binding=0.0.0.0' # start captain-planet
 alias netstatx='sudo lsof -iTCP -sTCP:LISTEN -n -P'
 alias use_cp='rvm gemset use cp'
 alias openfire='docker run --name openfire -d --restart=always   --publish 9090:9090 --publish 5222:5222 --publish 7777:7777   --volume /Users/cdevoto/Tools/openfire:/var/lib/openfire sameersbn/openfire:3.10.3-19'
+
+alias wantify-postgres-latest='docker pull shrinedevelopment-docker-develop.jfrog.io/postgres-schema'
+alias wantify-postgres='docker run -it --rm -p 5432:5432 -h localhost --name wantify-db shrinedevelopment-docker-develop.jfrog.io/postgres-schema'
+alias wantify-server-latest='docker pull shrinedevelopment-docker-develop.jfrog.io/wantify-server'
+alias wantify-server='docker run -it --rm -p 8080:8080 -h localhost --env-file ~/GitHub/wantify/wantify-server/docker/local.env --name wantify-server shrinedevelopment-docker-develop.jfrog.io/wantify-server:latest'
+
+alias ssh-cpdevoto-jenkins='ssh -i ~/.ssh/cpdevoto-aws.pem ubuntu@ec2-34-227-110-151.compute-1.amazonaws.com'
+alias ssh-shrinedev-jenkins='ssh -i ~/.ssh/shrinedev-aws.pem ubuntu@ec2-18-188-176-192.us-east-2.compute.amazonaws.com'
 
 migrations-new_migration20-dblocal () {
 	docker run -it --rm --env-file migration2.env --volume ~/GitHub/captain-planet/db/migrate:/var/www/migrations-app/db/migrate --net host maddogtechnology-docker-develop.jfrog.io/migrations-app rake db:new_migration name=$1
