@@ -1,0 +1,79 @@
+buildscript {
+    repositories {
+        maven {
+            url "${shrine_artifactory_contextUrl}" + '/repo'
+            credentials {
+                username = "${shrine_artifactory_user}"
+                password = "${shrine_artifactory_password}"
+            }
+        }
+
+        dependencies {
+            classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.3'
+            classpath "com.shrinedev:GradleCommonConfigurationPlugin:1.0.+"
+        }
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'shrine-common-config'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+group = 'shrinedev'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+def mainClassName = 'com.shrinedev.avs.ArtifactVersionSleuth'
+
+dependencies {
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.6.0',
+            'com.fasterxml.jackson.core:jackson-databind:2.6.3',
+            'com.fasterxml.jackson.core:jackson-core:2.6.3',
+            'com.google.guava:guava:21.0',
+            'com.squareup.okhttp3:okhttp:3.3.0'
+    testCompile 'junit:junit:4.12', 
+                'org.mockito:mockito-core:1.10.19',
+                'org.hamcrest:hamcrest-all:1.3'     
+}
+
+shadowJar {
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+
+    archiveName = "${project.name}.${extension}"
+}
+
+build.dependsOn.remove("check") // defer check to shadowJar, so we can test the built docker image
+shadowJar.finalizedBy(check) // check(and test) must complete after shadowJar
+check.dependsOn.add("shadowJar") // shadowJar must proceed check
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact(file("$rootDir/gradle.properties"))
+        }
+        shadow(MavenPublication) {
+            from components.java
+            artifact shadowJar
+        }
+    }
+}
+
+artifactoryPublish {
+    dependsOn shadowJar
+    publications(publishing.publications.shadow,
+            publishing.publications.mavenJava)
+}
+
