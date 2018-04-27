@@ -1,0 +1,91 @@
+def imageName = 'wantify-server'
+def stableBuild
+def dockerHost
+
+ext.initDockerVars = { ->
+    def branch = ""
+    def proc = "git rev-parse --abbrev-ref HEAD".execute()
+    proc.in.eachLine { line -> branch = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+
+    if (branch == null) {
+        throw new RuntimeException("A problem occurred while attempting to read the name of the current branch")
+    } else if (branch.equals("develop") || branch.equals("origin/develop")) {
+        stableBuild = false
+    } else if (branch.startsWith("release") || branch.startsWith("origin/release")) {
+        stableBuild = true
+    } else {
+        branch = System.getenv("GIT_BRANCH")
+        if (branch != null && branch.startsWith("origin/release")) {
+            stableBuild = true
+        } else if (branch != null && branch.equals("origin/develop")) {
+            stableBuild = false
+        } else {
+            logger.quiet "WARN: Unrecognized git branch name " + branch + "; we will assume that this is a development build"
+            stableBuild = false
+        }
+    }
+    logger.quiet('Setting stableBuild to ' + stableBuild)
+
+    def stableDockerRepoKey = "docker-stable"
+    def developDockerRepoKey = "docker-develop"
+    dockerHost = "shrinedevelopment-" + (stableBuild ? stableDockerRepoKey : developDockerRepoKey) + ".jfrog.io"
+}
+
+task publishDocker << {
+    def baseVersion = project.hasProperty('baseVersion') ? project.baseVersion : '1'  
+    def releaseNum = project.hasProperty('releaseNum') ? project.releaseNum : '0'
+    def buildNum = System.getenv("BUILD_NUMBER") ? System.getenv("BUILD_NUMBER") : project.hasProperty('buildNum') ? project.buildNum : { ->
+            def user = System.getenv("USER");
+            return "dev-${user}";
+        }
+    def projectVersion = "${baseVersion}.${releaseNum}.${buildNum}"
+     
+    project.initDockerVars()
+
+    logger.quiet("\ndocker rmi -f ${dockerHost}/${imageName}:previous || true")
+    project.exec {
+        commandLine "/bin/bash", "-c", "docker rmi -f ${dockerHost}/${imageName}:previous || true"
+    }
+
+    // Create a "backup" copy of the latest image (if it exist) before you overwrite it so that you can revert
+    // to it in case any of the following commands fail
+    logger.quiet("\ndocker tag ${dockerHost}/${imageName} ${dockerHost}/${imageName}:previous || true")
+    project.exec {
+        commandLine "/bin/bash", "-c", "docker tag ${dockerHost}/${imageName} ${dockerHost}/${imageName}:previous || true"
+    }
+
+    logger.quiet("\ndocker rmi -f ${dockerHost}/${imageName} || true")
+    project.exec {
+        commandLine "/bin/bash", "-c", "docker rmi -f ${dockerHost}/${imageName} || true"
+    }
+
+    logger.quiet("\ndocker build -t ${dockerHost}/${imageName} -f ./docker/Dockerfile .")
+    project.exec {
+        commandLine "/bin/bash", "-c", "docker build -t ${dockerHost}/${imageName} -f ./docker/Dockerfile ."
+    }
+
+    if (!stableBuild) {  // If we are doing a stable build, we do not want to push to :latest
+        logger.quiet("\ndocker push ${dockerHost}/${imageName}")
+        project.exec {
+            commandLine "/bin/bash", "-c", "docker push ${dockerHost}/${imageName}"
+        }
+    }
+
+    logger.quiet("\ndocker tag ${dockerHost}/${imageName} ${dockerHost}/${imageName}:${projectVersion}")
+    project.exec {
+        commandLine "/bin/bash", "-c", "docker tag ${dockerHost}/${imageName} ${dockerHost}/${imageName}:${projectVersion}"
+    }
+    
+    logger.quiet("\ndocker push ${dockerHost}/${imageName}:${projectVersion}")
+    project.exec {
+        commandLine "/bin/bash", "-c", "docker push ${dockerHost}/${imageName}:${projectVersion}"
+    }
+
+    logger.quiet("\ndocker rmi -f ${dockerHost}/${imageName}:previous || true")
+    project.exec {
+        commandLine "/bin/bash", "-c", "docker rmi -f ${dockerHost}/${imageName}:previous || true"
+    }
+ 
+}

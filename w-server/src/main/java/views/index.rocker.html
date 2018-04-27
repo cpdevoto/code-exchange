@@ -1,0 +1,26 @@
+@args (String title, utils.auth.AuthUser authUser)
+
+@views.layout.main.template(title) -> {
+
+<main class="landing">
+Welcome to Wantify, @authUser.getGivenName()!
+
+<div id="user-section">
+<h3>Wantify Users</h3>
+<table id="users">
+  <tr>
+    <th>Email</th>
+    <th>Preferred Username</th>
+    <th>Name</th>
+    <th>Given Name</th>
+    <th>Family Name</th>
+  </tr>
+</table>
+</div>
+</main>
+
+<link rel="icon" href='@N.assetsAt("images/favicon.ico")' type="image/x-icon">
+<script src='@N.assetsAt("js/jquery-3.3.1.min.js")'></script>
+<script src='@N.assetsAt("js/index.js")'></script>
+
+}

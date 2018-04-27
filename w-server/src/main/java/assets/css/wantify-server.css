@@ -1,0 +1,28 @@
+html, body {
+    font-family: Arial,sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: Arial,sans-serif;
+    font-weight: 400;
+    margin: 10px 0;
+}
+
+div#user-section {
+	margin-top: 50px;
+	width: 800px;
+}
+
+table#users {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#users td, #users th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}

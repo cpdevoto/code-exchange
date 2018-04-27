@@ -1,0 +1,9 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgres
+spec:
+  type: ExternalName
+  externalName: wantify-dev.cgcghsuzur6g.us-east-2.rds.amazonaws.com
+  ports:
+    - port: 5432

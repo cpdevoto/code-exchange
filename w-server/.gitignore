@@ -1,0 +1,32 @@
+# General
+*~
+.fixtures
+*iml
+*.db
+
+# IntelliJ
+out/
+.idea/
+
+# Eclipse
+.classpath
+.factorypath
+.project
+.settings/
+
+# Build Outputs
+bin/
+build/
+*.class
+target/
+node_modules/
+*.bundle.js*
+dependency-reduced-pom.xml
+.DS_Store
+
+# logs
+*.log
+
+# errors
+hs_err_pid*
+/.gradle/

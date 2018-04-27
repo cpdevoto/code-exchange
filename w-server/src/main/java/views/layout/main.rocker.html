@@ -1,0 +1,31 @@
+@args (String title, RockerBody content)
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>@title</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+    <link rel="icon" href='@N.assetsAt("images/favicon.ico")' type="image/x-icon">
+    <link rel="stylesheet" href='@N.assetsAt("css/wantify-server.css")'>
+
+</head>
+<body>
+
+@if (N.flash.containsKey("error")) {
+<div class="alert alert-danger" role="alert">
+    <strong>Uh oh!</strong> @N.flash.get("error")
+</div>
+}
+
+@if (N.flash.containsKey("success")) {
+<div class="alert alert-success" role="alert">
+    @N.flash.get("success")
+</div>
+}
+
+@content
+
+
+</body>
+</html>

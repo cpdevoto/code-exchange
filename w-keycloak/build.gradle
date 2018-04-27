@@ -1,0 +1,45 @@
+buildscript {
+    repositories {
+        maven {
+            url "${shrine_artifactory_contextUrl}" + '/repo'
+            credentials {
+                username = "${shrine_artifactory_user}"
+                password = "${shrine_artifactory_password}"
+            }
+        }
+
+        dependencies {
+            classpath "com.shrinedev:GradleCommonConfigurationPlugin:1.0.+"
+        }
+    }
+}
+
+group = 'shrinedev'
+
+apply plugin: 'base'
+apply plugin: 'shrine-common-config'
+
+def thisDockerImage = 'wantify-keycloak'
+
+shrineDocker {
+    artifacts = [
+        thisDockerImage
+    ]
+}
+
+clean << {
+    println "docker rmi -f ${dockerHost}/${thisDockerImage}"
+    exec {
+        // If your environment was clean it won't delete anything, hence the true to offset the error
+        commandLine "/bin/bash", "-c", "docker rmi -f ${dockerHost}/${thisDockerImage} || true"
+    }
+}
+
+build << {
+
+    println "docker build -t ${dockerHost}/${thisDockerImage} -f ./docker/Dockerfile ."
+    exec {
+        commandLine "/bin/bash", "-c", "docker build -t ${dockerHost}/${thisDockerImage} -f ./docker/Dockerfile ."
+    }
+}
+
