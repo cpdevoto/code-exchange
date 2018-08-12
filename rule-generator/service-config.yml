@@ -1,0 +1,59 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: ${APP_PORT}
+
+  adminConnectors:
+    - type: http
+      port: ${ADMIN_PORT}
+
+  requestLog:
+    appenders:
+      - type: console
+        timeZone: UTC
+logging:
+  level: INFO
+  appenders:
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      includeCallerData: true
+      logFormat: "%d{dd MMM yyyy HH:mm:ss,SSS} %-5p [%thread]  \\(%C.%M:%L\\) - %m%n"
+
+postgresqlDatabase:
+
+  # the name of your JDBC driver
+  driverClass: org.postgresql.Driver
+
+  # the username
+  user: "${DATABASE_USERNAME}"
+
+  # the password
+  password: "${DATABASE_PASSWORD}"
+
+  # the JDBC URL
+  url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # the maximum amount of time to wait on an empty pool before throwing an exception
+  maxWaitForConnection: 1s
+
+  # the SQL query to run when validating a connection's liveness
+  validationQuery: "/* MyApplication Health Check */ SELECT 1"
+
+  # the minimum number of connections to keep open
+  minSize: 8
+
+  # the maximum number of connections to keep open
+  maxSize: 32
+
+  # whether or not idle connections should be validated
+  checkConnectionWhileIdle: false
+
+  # Whether or not connections will be validated before being borrowed from the pool.
+  # If the connection fails to validate, it will be dropped from the pool, and another will be borrowed.
+  checkConnectionOnBorrow: true
+

@@ -1,0 +1,1 @@
+npx babel --watch react-src --out-dir src/main/resources/assets/js --presets react-app/prod

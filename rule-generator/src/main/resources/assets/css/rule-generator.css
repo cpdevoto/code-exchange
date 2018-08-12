@@ -1,0 +1,180 @@
+h1 {
+  /* background-color: #DDEEFF; */
+  background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%);
+  color: #f3f3f3;
+  font-size: 30px;
+  font-weight: 550;
+  font-family: Verdana,sans-serif;
+  padding: 20px;
+  margin: 0px;
+}
+
+select {
+  max-width: 650px;
+}
+
+a {
+  color: #37b6d5;
+}
+
+a:hover {
+  color: #008474;
+  text-decoration: none; 
+}
+
+.footer {
+  padding: 0 20px;
+  font-style: italic;
+  color: #ccc;
+}
+
+.btn-primary, .btn-primary.disabled, 
+.btn-primary:disabled, .btn-primary:hover:disabled {
+  background-color: #00A591; 
+  border-color: #00A591; 
+}
+
+.btn-primary:hover {
+  background-color: #008474; 
+  border-color: #008474; 
+}
+
+.errors {
+  color: #D8000C;
+}
+
+.errors h2 {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.wizardBreadcrumbTrail {
+  border-top: solid 1px #72B6BD;
+  border-bottom: solid 1px #72B6BD;
+  background-color: #E5FEF3;
+  padding-left: 20px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin: 0px;
+}
+
+.wizard .view {
+  padding: 20px;
+}
+
+.spinner {
+    margin: 50px 50px;
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #1fc8db; /* Blue: #3498db; */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 2s linear infinite;
+}
+
+.spinner-small {
+    margin: 50px 50px;
+    border: 10px solid #f3f3f3;
+    border-top: 10px solid #1fc8db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+   -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+ }
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.filter-spec {
+  display: table;
+  margin: 0 0 1em 0;
+}
+
+.filter-spec > .filter-field {
+  display: table-row;
+}
+
+.filter-spec > .filter-field > div {
+  display: table-cell;
+  padding: 0.8em 0.4em;
+  white-space: nowrap;  
+  overflow: hidden; 
+}
+
+.filter-spec > .filter-field > .filter-field-label {
+  font-weight: bold;
+  width: 1%;
+}
+
+.tabs {
+    overflow: hidden;
+    border: 1px solid #72B6BD;
+    background-color: #E5FEF3; /* #f1f1f1; */
+}
+
+.tabs-nav {
+    overflow: hidden;
+    white-space: nowrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tab {
+    display: inline-block;
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+.tab:hover {
+  background-color:  #BBEEF4; /* #ddd; */
+}
+
+.tab.active {
+  background-color: #8FE3ED; /* #ccc; */
+}
+
+.tabs-active-content {
+    background-color:  #FFF; 
+    padding: 20px; 
+}
+
+.toggle > .input {
+  diplay: inline-block;
+  margin: 0;
+  margin-right: 1em;
+}
+
+.equipment {
+  padding-left: 30px;
+}
+
+.equipment > li {
+  margin-bottom: 0.5rem;
+}
+
+.candidates > .entries {
+  max-height: 450px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.candidate-controls > a {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.generate-rules {
+  margin-top: 0.5rem;
+}
+
+
