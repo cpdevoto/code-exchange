@@ -1,0 +1,1006 @@
+CREATE OR REPLACE FUNCTION nuke_node_impl(id_p INTEGER)
+RETURNS VOID
+AS $BODY$
+  DECLARE
+    customer_id_v INTEGER;
+    undeletable_buildings_v INTEGER;
+  BEGIN
+
+    SET session_replication_role = replica;
+    SELECT customer_id INTO customer_id_v
+      FROM node_tbl WHERE id = id_p;
+
+    IF (customer_id_v IS NULL) THEN
+      RAISE NOTICE 'node % does not exist, so there is nothing to nuke!', id_p;
+      RETURN;
+    END IF;
+
+    SELECT count(*) INTO undeletable_buildings_v
+      FROM node_closure_tbl nc
+      JOIN node_tbl n ON nc.child_id = n.id
+      JOIN building_tbl b ON n.id = b.id
+      WHERE nc.parent_id = id_p AND
+         b.status = 'ACTIVE'::building_status AND b.pending_deletion = FALSE;
+
+    IF (undeletable_buildings_v IS NOT NULL AND undeletable_buildings_v > 0) THEN
+      RAISE EXCEPTION 'Cannot delete active buildings unless pending deletion has been set to true';
+    END IF;
+
+    IF (SELECT NOT EXISTS (SELECT child_id FROM node_closure_tbl WHERE parent_id = id_p)) THEN
+      RAISE NOTICE 'row corresponding to id % does not exist, so there is nothing to nuke!', id_p;
+      RETURN;
+    END IF;
+
+    DROP TABLE IF EXISTS temp_2_node_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_node_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_node_tbl (id)
+      SELECT child_id FROM node_closure_tbl WHERE parent_id = id_p;
+
+    DROP TABLE IF EXISTS temp_2_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_point_tbl (id)
+      SELECT t1.id
+        FROM point_tbl t1
+        JOIN temp_2_node_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_w_kpi_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_w_kpi_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_w_kpi_tbl (id)
+      SELECT t1.id
+        FROM w_kpi_tbl t1
+        JOIN temp_2_point_tbl t2 ON t1.point_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_w_datablock_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_w_datablock_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_w_datablock_tbl (id)
+      SELECT t1.id
+        FROM w_datablock_tbl t1
+        JOIN temp_2_point_tbl t2 ON t1.point_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_meter_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_meter_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_meter_tbl (id)
+      SELECT t1.id
+        FROM meter_tbl t1
+        JOIN temp_2_node_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_mappable_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_mappable_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_mappable_point_tbl (id)
+      SELECT t1.id
+        FROM mappable_point_tbl t1
+        JOIN temp_2_point_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_explorer_bookmark_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_explorer_bookmark_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_explorer_bookmark_tbl (id)
+      SELECT t1.id
+        FROM explorer_bookmark_tbl t1
+        JOIN temp_2_node_tbl t2 ON t1.node_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_equipment_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_equipment_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    DROP TABLE IF EXISTS temp_unary_2_equipment_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_unary_2_equipment_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_equipment_tbl (id)
+      SELECT t1.id
+        FROM equipment_tbl t1
+        JOIN temp_2_node_tbl t2 ON t1.id = t2.id;
+
+    INSERT INTO temp_unary_2_equipment_tbl (id)
+      SELECT t1.id
+        FROM equipment_tbl t1
+        JOIN temp_2_equipment_tbl t2 ON t1.parent_equipment_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_dataset_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_dataset_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_dataset_point_tbl (id)
+      SELECT t1.id
+        FROM dataset_point_tbl t1
+        JOIN temp_2_point_tbl t2 ON t1.point_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_widget_dataset_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_widget_dataset_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_widget_dataset_point_tbl (id)
+      SELECT t1.id
+        FROM widget_dataset_point_tbl t1
+        JOIN temp_2_dataset_point_tbl t2 ON t1.dataset_point_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_w_summary_table_dataset_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_w_summary_table_dataset_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_w_summary_table_dataset_point_tbl (id)
+      SELECT t1.id
+        FROM w_summary_table_dataset_point_tbl t1
+        JOIN temp_2_widget_dataset_point_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_computed_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_computed_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_computed_point_tbl (id)
+      SELECT t1.id
+        FROM computed_point_tbl t1
+        JOIN temp_2_point_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_sync_computed_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_sync_computed_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_sync_computed_point_tbl (id)
+      SELECT t1.id
+        FROM sync_computed_point_tbl t1
+        JOIN temp_2_computed_point_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_sync_computed_point_input_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_sync_computed_point_input_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_sync_computed_point_input_tbl (id)
+      SELECT t1.id
+        FROM sync_computed_point_input_tbl t1
+        JOIN temp_2_point_tbl t2 ON t1.input_point_id = t2.id
+        JOIN temp_2_sync_computed_point_tbl t3 ON t1.sync_computed_point_id = t3.id;
+
+    DROP TABLE IF EXISTS temp_2_billing_location_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_billing_location_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_billing_location_tbl (id)
+      SELECT t1.id
+        FROM billing_location_tbl t1
+        JOIN temp_2_node_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_temporal_billing_location_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_temporal_billing_location_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_temporal_billing_location_tbl (id)
+      SELECT t1.id
+        FROM temporal_billing_location_tbl t1
+        JOIN temp_2_billing_location_tbl t2 ON t1.billing_location_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_building_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_building_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_building_tbl (id)
+      SELECT t1.id
+        FROM building_tbl t1
+        JOIN temp_2_billing_location_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_generated_report_instance_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_generated_report_instance_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_generated_report_instance_tbl (id)
+      SELECT t1.id
+        FROM generated_report_instance_tbl t1
+        JOIN temp_2_building_tbl t2 ON t1.node_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_building_email_notification_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_building_email_notification_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_building_email_notification_tbl (id)
+      SELECT t1.id
+        FROM building_email_notification_tbl t1
+        JOIN temp_2_building_tbl t2 ON t1.building_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_async_computed_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_async_computed_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_async_computed_point_tbl (id)
+      SELECT t1.id
+        FROM async_computed_point_tbl t1
+        JOIN temp_2_computed_point_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_scheduled_async_computed_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_scheduled_async_computed_point_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_scheduled_async_computed_point_tbl (id)
+      SELECT t1.id
+        FROM scheduled_async_computed_point_tbl t1
+        JOIN temp_2_async_computed_point_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_scheduled_event_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_scheduled_event_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_scheduled_event_tbl (id)
+      SELECT t1.id
+        FROM scheduled_event_tbl t1
+        JOIN temp_2_scheduled_async_computed_point_tbl t2 ON t1.point_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_recurrence_rule_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_recurrence_rule_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_recurrence_rule_tbl (id)
+      SELECT t1.id
+        FROM recurrence_rule_tbl t1
+        JOIN temp_2_scheduled_event_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_async_computed_point_config_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_async_computed_point_config_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_async_computed_point_config_tbl (id)
+      SELECT t1.id
+        FROM async_computed_point_config_tbl t1
+        JOIN temp_2_async_computed_point_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_temporal_async_computed_point_config_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_temporal_async_computed_point_config_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_temporal_async_computed_point_config_tbl (id)
+      SELECT t1.id
+        FROM temporal_async_computed_point_config_tbl t1
+        JOIN temp_2_async_computed_point_config_tbl t2 ON t1.async_computed_point_config_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_area_of_interest_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_area_of_interest_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_area_of_interest_tbl (id)
+      SELECT t1.id
+        FROM area_of_interest_tbl t1
+        JOIN temp_2_node_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_ad_function_instance_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_ad_function_instance_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_ad_function_instance_tbl (id)
+      SELECT t1.id
+        FROM ad_function_instance_tbl t1
+        JOIN temp_2_equipment_tbl t2 ON t1.node_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_2_ad_function_instance_output_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_ad_function_instance_output_point_tbl (
+      ad_function_instance_id INTEGER NOT NULL,
+      ad_function_template_output_point_id INTEGER NOT NULL,
+      PRIMARY KEY (ad_function_instance_id, ad_function_template_output_point_id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_ad_function_instance_output_point_tbl (ad_function_instance_id, ad_function_template_output_point_id)
+      SELECT t1.ad_function_instance_id, t1.ad_function_template_output_point_id
+        FROM ad_function_instance_output_point_tbl t1
+        JOIN temp_2_ad_function_instance_tbl t2 ON t1.ad_function_instance_id = t2.id
+        JOIN temp_2_async_computed_point_tbl t3 ON t1.point_id = t3.id;
+
+    DROP TABLE IF EXISTS temp_2_ad_function_instance_input_point_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_ad_function_instance_input_point_tbl (
+      ad_function_instance_id INTEGER NOT NULL,
+      ad_function_template_input_point_id INTEGER NOT NULL,
+      subscript INTEGER NOT NULL,
+      PRIMARY KEY (ad_function_instance_id, ad_function_template_input_point_id, subscript)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_ad_function_instance_input_point_tbl (ad_function_instance_id, ad_function_template_input_point_id, subscript)
+      SELECT t1.ad_function_instance_id, t1.ad_function_template_input_point_id, t1.subscript
+        FROM ad_function_instance_input_point_tbl t1
+        JOIN temp_2_ad_function_instance_tbl t2 ON t1.ad_function_instance_id = t2.id
+        JOIN temp_2_point_tbl t3 ON t1.point_id = t3.id;
+
+    DROP TABLE IF EXISTS temp_2_ad_function_instance_input_const_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_2_ad_function_instance_input_const_tbl (
+      ad_function_instance_id INTEGER NOT NULL,
+      ad_function_template_input_const_id INTEGER NOT NULL,
+      PRIMARY KEY (ad_function_instance_id, ad_function_template_input_const_id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_2_ad_function_instance_input_const_tbl (ad_function_instance_id, ad_function_template_input_const_id)
+      SELECT t1.ad_function_instance_id, t1.ad_function_template_input_const_id
+        FROM ad_function_instance_input_const_tbl t1
+        JOIN temp_2_ad_function_instance_tbl t2 ON t1.ad_function_instance_id = t2.id;
+
+    DELETE FROM ad_command_sequence_instance_input_const_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_input_const_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_const_id = t2.ad_function_template_input_const_id
+    );
+
+    DELETE FROM ad_command_sequence_instance_input_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_input_point_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_point_id = t2.ad_function_template_input_point_id AND t1.subscript = t2.subscript
+    );
+
+    DELETE FROM ad_command_sequence_instance_output_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_output_point_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_output_point_id = t2.ad_function_template_output_point_id
+    );
+
+    DELETE FROM ad_command_sequence_instance_tbl WHERE id IN (
+      SELECT id
+      FROM temp_2_ad_function_instance_tbl
+    );
+
+    DELETE FROM ad_computed_point_instance_input_const_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_input_const_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_const_id = t2.ad_function_template_input_const_id
+    );
+
+    DELETE FROM ad_computed_point_instance_input_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_input_point_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_point_id = t2.ad_function_template_input_point_id AND t1.subscript = t2.subscript
+    );
+
+    DELETE FROM ad_computed_point_instance_output_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_output_point_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_output_point_id = t2.ad_function_template_output_point_id
+    );
+
+    DELETE FROM ad_computed_point_instance_tbl WHERE id IN (
+      SELECT id
+      FROM temp_2_ad_function_instance_tbl
+    );
+
+    DELETE FROM ad_rule_instance_input_const_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_input_const_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_const_id = t2.ad_function_template_input_const_id
+    );
+
+    DELETE FROM ad_function_instance_input_const_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM ad_function_instance_input_const_tbl t2
+      JOIN temp_2_ad_function_instance_input_const_tbl t3 ON t2.ad_function_instance_id = t3.ad_function_instance_id AND t2.ad_function_template_input_const_id = t3.ad_function_template_input_const_id
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_const_id = t2.ad_function_template_input_const_id
+    );
+
+    DELETE FROM ad_rule_instance_input_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_input_point_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_point_id = t2.ad_function_template_input_point_id AND t1.subscript = t2.subscript
+    );
+
+    DELETE FROM ad_function_instance_input_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM ad_function_instance_input_point_tbl t2
+      JOIN temp_2_ad_function_instance_input_point_tbl t3 ON t2.ad_function_instance_id = t3.ad_function_instance_id AND t2.ad_function_template_input_point_id = t3.ad_function_template_input_point_id AND t2.subscript = t3.subscript
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_input_point_id = t2.ad_function_template_input_point_id AND t1.subscript = t2.subscript
+    );
+
+    DELETE FROM ad_rule_instance_output_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_ad_function_instance_output_point_tbl t2
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_output_point_id = t2.ad_function_template_output_point_id
+    );
+
+    DELETE FROM ad_function_instance_output_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM ad_function_instance_output_point_tbl t2
+      JOIN temp_2_ad_function_instance_output_point_tbl t3 ON t2.ad_function_instance_id = t3.ad_function_instance_id AND t2.ad_function_template_output_point_id = t3.ad_function_template_output_point_id
+      WHERE t1.ad_function_instance_id = t2.ad_function_instance_id AND t1.ad_function_template_output_point_id = t2.ad_function_template_output_point_id
+    );
+
+    DELETE FROM ad_rule_instance_tbl WHERE id IN (
+      SELECT id
+      FROM temp_2_ad_function_instance_tbl
+    );
+
+    DELETE FROM ad_function_instance_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM ad_function_instance_tbl t2
+      JOIN temp_2_ad_function_instance_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM area_of_interest_node_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_area_of_interest_tbl t2
+      WHERE t1.area_of_interest_id = t2.id
+    );
+
+    DELETE FROM area_of_interest_node_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM area_of_interest_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM area_of_interest_tbl t2
+      JOIN temp_2_area_of_interest_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM temporal_async_computed_point_var_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_mappable_point_tbl t2
+      WHERE t1.point_id = t2.id
+    );
+
+    DELETE FROM temporal_async_computed_point_var_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_temporal_async_computed_point_config_tbl t2
+      WHERE t1.temporal_async_computed_point_config_id = t2.id
+    );
+
+    DELETE FROM temporal_async_computed_point_config_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temporal_async_computed_point_config_tbl t2
+      JOIN temp_2_temporal_async_computed_point_config_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM async_computed_point_config_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM async_computed_point_config_tbl t2
+      JOIN temp_2_async_computed_point_config_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM recurrence_rule_exception_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_recurrence_rule_tbl t2
+      WHERE t1.recurrence_rule_id = t2.id
+    );
+
+    DELETE FROM recurrence_rule_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM recurrence_rule_tbl t2
+      JOIN temp_2_recurrence_rule_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM scheduled_event_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM scheduled_event_tbl t2
+      JOIN temp_2_scheduled_event_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM scheduled_async_computed_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM scheduled_async_computed_point_tbl t2
+      JOIN temp_2_scheduled_async_computed_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM async_computed_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM async_computed_point_tbl t2
+      JOIN temp_2_async_computed_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM batch_job_schedule_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_building_tbl t2
+      WHERE t1.building_id = t2.id
+    );
+
+    DELETE FROM billing_location_account_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_billing_location_tbl t2
+      WHERE t1.billing_location_id = t2.id
+    );
+
+    DELETE FROM billing_location_utility_baseline_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_billing_location_tbl t2
+      WHERE t1.billing_location_id = t2.id
+    );
+
+    DELETE FROM building_email_notification_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_building_tbl t2
+      WHERE t1.building_id = t2.id
+    );
+
+    DELETE FROM building_subscription_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_building_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_status_error_message_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_building_tbl t2
+      WHERE t1.building_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_status_error_message_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.equipment_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_status_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_building_tbl t2
+      WHERE t1.building_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_equipment_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.equipment_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_equipment_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_generated_report_instance_tbl t2
+      WHERE t1.generated_report_instance_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.equipment_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_generated_report_instance_tbl t2
+      WHERE t1.generated_report_instance_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_point_tbl t2
+      WHERE t1.point_id = t2.id
+    );
+
+    DELETE FROM generated_report_instance_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM generated_report_instance_tbl t2
+      JOIN temp_2_generated_report_instance_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM building_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM building_tbl t2
+      JOIN temp_2_building_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM site_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_billing_location_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM temporal_billing_location_utility_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_temporal_billing_location_tbl t2
+      WHERE t1.temporal_billing_location_id = t2.id
+    );
+
+    DELETE FROM temporal_billing_location_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temporal_billing_location_tbl t2
+      JOIN temp_2_temporal_billing_location_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM utility_bill_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_billing_location_tbl t2
+      WHERE t1.billing_location_id = t2.id
+    );
+
+    DELETE FROM billing_location_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM billing_location_tbl t2
+      JOIN temp_2_billing_location_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM sync_computed_point_input_transformer_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_sync_computed_point_input_tbl t2
+      WHERE t1.sync_computed_point_input_id = t2.id
+    );
+
+    DELETE FROM sync_computed_point_input_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM sync_computed_point_input_tbl t2
+      JOIN temp_2_sync_computed_point_input_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM sync_computed_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM sync_computed_point_tbl t2
+      JOIN temp_2_sync_computed_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM computed_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM computed_point_tbl t2
+      JOIN temp_2_computed_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM w_bar_chart_dataset_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_widget_dataset_point_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM w_line_chart_dataset_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_widget_dataset_point_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM w_summary_table_point_value_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_w_summary_table_dataset_point_tbl t2
+      WHERE t1.w_summary_table_dataset_point_id = t2.id
+    );
+
+    DELETE FROM w_summary_table_dataset_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM w_summary_table_dataset_point_tbl t2
+      JOIN temp_2_w_summary_table_dataset_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM w_table_dataset_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_widget_dataset_point_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM widget_dataset_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM widget_dataset_point_tbl t2
+      JOIN temp_2_widget_dataset_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM dataset_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM dataset_point_tbl t2
+      JOIN temp_2_dataset_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM equipment_closure_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.child_id = t2.id
+    );
+
+    DELETE FROM equipment_closure_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.parent_id = t2.id
+    );
+
+    DELETE FROM equipment_meter_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.equipment_id = t2.id
+    );
+
+    DELETE FROM equipment_meter_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_meter_tbl t2
+      WHERE t1.meter_id = t2.id
+    );
+
+    DELETE FROM max_zone_temp_dev_equipment_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.equipment_id = t2.id
+    );
+
+    DELETE FROM max_zone_temp_dev_equipment_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM w_equipment_table_equipment_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_equipment_tbl t2
+      WHERE t1.equipment_id = t2.id
+    );
+
+    UPDATE equipment_tbl t1 SET parent_equipment_id = NULL WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_unary_2_equipment_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM equipment_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM equipment_tbl t2
+      JOIN temp_2_equipment_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM explorer_bookmark_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_explorer_bookmark_tbl t2
+      WHERE t1.explorer_bookmark_id = t2.id
+    );
+
+    DELETE FROM explorer_bookmark_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_point_tbl t2
+      WHERE t1.point_id = t2.id
+    );
+
+    DELETE FROM explorer_bookmark_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM explorer_bookmark_tbl t2
+      JOIN temp_2_explorer_bookmark_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM floor_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM generated_report_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM mappable_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM mappable_point_tbl t2
+      JOIN temp_2_mappable_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM w_meter_chart_meter_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_meter_tbl t2
+      WHERE t1.meter_id = t2.id
+    );
+
+    DELETE FROM w_meter_table_meter_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_meter_tbl t2
+      WHERE t1.meter_id = t2.id
+    );
+
+    DELETE FROM meter_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM meter_tbl t2
+      JOIN temp_2_meter_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM node_closure_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.parent_id = t2.id
+    );
+
+    DELETE FROM node_closure_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.child_id = t2.id
+    );
+
+    DELETE FROM node_name_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM node_node_template_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM node_ref_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM node_tag_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM w_datablock_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_point_tbl t2
+      WHERE t1.point_id = t2.id
+    );
+
+    DELETE FROM w_gauge_point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_point_tbl t2
+      WHERE t1.point_id = t2.id
+    );
+
+    DELETE FROM w_kpi_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_point_tbl t2
+      WHERE t1.point_id = t2.id
+    );
+
+    DELETE FROM point_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM point_tbl t2
+      JOIN temp_2_point_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM portfolio_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM relationship_node_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM report_node_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM standard_perspective_customer_node_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM sub_building_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM user_node_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.node_id = t2.id
+    );
+
+    DELETE FROM zone_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_2_node_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM node_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM node_tbl t2
+      JOIN temp_2_node_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    PERFORM nuke_widget_impl(id)
+      FROM temp_2_w_kpi_tbl;
+
+    PERFORM nuke_widget_impl(id)
+      FROM temp_2_w_datablock_tbl;
+
+    PERFORM nuke_email_notification_impl(id)
+      FROM temp_2_building_email_notification_tbl;
+
+    SET session_replication_role = DEFAULT;
+    PERFORM propagate_building_deletion(id, customer_id_v)
+      FROM temp_2_building_tbl;
+
+    RETURN;
+  END;
+$BODY$
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION nuke_node(id_p INTEGER)
+RETURNS VOID
+AS $BODY$
+  BEGIN
+    SET session_replication_role = replica;
+    PERFORM nuke_node_impl(id_p);
+    SET session_replication_role = DEFAULT;
+    RETURN;
+  EXCEPTION WHEN OTHERS THEN
+    SET session_replication_role = DEFAULT;
+    RAISE;
+  END;
+$BODY$
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+

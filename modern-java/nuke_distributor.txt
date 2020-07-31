@@ -1,0 +1,209 @@
+CREATE OR REPLACE FUNCTION nuke_distributor_impl(id_p INTEGER)
+RETURNS VOID
+AS $BODY$
+  DECLARE
+    status_v distributor_status;
+  BEGIN
+
+    SELECT status INTO status_v
+      FROM distributor_tbl
+      WHERE id = id_p;
+
+    IF (status_v IS NULL) THEN
+      RETURN;
+    ELSIF (status_v <> 'DELETED'::distributor_status) THEN
+      RAISE EXCEPTION 'Cannot delete a distributor that is not in the DELETED status';
+    END IF;
+
+    IF (SELECT EXISTS (SELECT TRUE FROM distributor_tbl WHERE parent_id = id_p)) THEN
+      RAISE EXCEPTION 'Cannot delete a distributor that has child distributors';
+    END IF;
+    PERFORM nuke_customer_impl(id)
+      FROM customer_tbl
+      WHERE distributor_id = id_p;
+
+    SET session_replication_role = replica;
+
+    IF (SELECT NOT EXISTS (SELECT id FROM distributor_tbl WHERE id = id_p)) THEN
+      RAISE NOTICE 'row corresponding to id % does not exist, so there is nothing to nuke!', id_p;
+      RETURN;
+    END IF;
+
+    DROP TABLE IF EXISTS temp_5_distributor_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_5_distributor_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_5_distributor_tbl (id)
+      SELECT id FROM distributor_tbl WHERE id = id_p;
+
+    DROP TABLE IF EXISTS temp_5_vpn_configuration_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_5_vpn_configuration_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_5_vpn_configuration_tbl (id)
+      SELECT t1.id
+        FROM vpn_configuration_tbl t1
+        JOIN temp_5_distributor_tbl t2 ON t1.distributor_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_5_online_distributor_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_5_online_distributor_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_5_online_distributor_tbl (id)
+      SELECT t1.id
+        FROM online_distributor_tbl t1
+        JOIN temp_5_distributor_tbl t2 ON t1.id = t2.id;
+
+    DROP TABLE IF EXISTS temp_5_payment_method_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_5_payment_method_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_5_payment_method_tbl (id)
+      SELECT t1.id
+        FROM payment_method_tbl t1
+        JOIN temp_5_online_distributor_tbl t2 ON t1.distributor_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_5_distributor_user_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_5_distributor_user_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_5_distributor_user_tbl (id)
+      SELECT t1.id
+        FROM distributor_user_tbl t1
+        JOIN temp_5_distributor_tbl t2 ON t1.distributor_id = t2.id;
+
+    DROP TABLE IF EXISTS temp_5_distributor_email_notification_tbl;
+    CREATE LOCAL TEMPORARY TABLE temp_5_distributor_email_notification_tbl (
+      id INTEGER NOT NULL,
+      PRIMARY KEY (id)
+    ) ON COMMIT DROP;
+
+    INSERT INTO temp_5_distributor_email_notification_tbl (id)
+      SELECT t1.id
+        FROM distributor_email_notification_tbl t1
+        JOIN temp_5_distributor_tbl t2 ON t1.distributor_id = t2.id;
+
+    DELETE FROM ach_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_payment_method_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM building_subscription_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_payment_method_tbl t2
+      WHERE t1.payment_method_id = t2.id
+    );
+
+    DELETE FROM credit_card_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_payment_method_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM deleted_billable_building_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_distributor_tbl t2
+      WHERE t1.distributor_id = t2.id
+    );
+
+    DELETE FROM distributor_closure_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_distributor_tbl t2
+      WHERE t1.child_id = t2.id
+    );
+
+    DELETE FROM distributor_closure_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_distributor_tbl t2
+      WHERE t1.parent_id = t2.id
+    );
+
+    DELETE FROM distributor_email_notification_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_distributor_tbl t2
+      WHERE t1.distributor_id = t2.id
+    );
+
+    DELETE FROM distributor_user_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_distributor_tbl t2
+      WHERE t1.distributor_id = t2.id
+    );
+
+    DELETE FROM payment_method_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM payment_method_tbl t2
+      JOIN temp_5_payment_method_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM online_distributor_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM online_distributor_tbl t2
+      JOIN temp_5_online_distributor_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM out_of_band_distributor_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_distributor_tbl t2
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM vpn_configuration_customer_cloudfill_connector_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM temp_5_vpn_configuration_tbl t2
+      WHERE t1.vpn_configuration_id = t2.id
+    );
+
+    DELETE FROM vpn_configuration_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM vpn_configuration_tbl t2
+      JOIN temp_5_vpn_configuration_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    DELETE FROM distributor_tbl t1 WHERE EXISTS (
+      SELECT TRUE
+      FROM distributor_tbl t2
+      JOIN temp_5_distributor_tbl t3 ON t2.id = t3.id
+      WHERE t1.id = t2.id
+    );
+
+    PERFORM nuke_user_impl(id)
+      FROM temp_5_distributor_user_tbl;
+
+    PERFORM nuke_email_notification_impl(id)
+      FROM temp_5_distributor_email_notification_tbl;
+
+    RETURN;
+  END;
+$BODY$
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION nuke_distributor(id_p INTEGER)
+RETURNS VOID
+AS $BODY$
+  BEGIN
+    SET session_replication_role = replica;
+    PERFORM nuke_distributor_impl(id_p);
+    SET session_replication_role = DEFAULT;
+    RETURN;
+  EXCEPTION WHEN OTHERS THEN
+    SET session_replication_role = DEFAULT;
+    RAISE;
+  END;
+$BODY$
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
