@@ -21,7 +21,7 @@
         <ebean-packages>models.*</ebean-packages>
         <ninja-rocker.version>0.16.0</ninja-rocker.version>
         <java.version>1.8</java.version>
-        <jackson.version>2.9.4</jackson.version>
+        <jackson.version>2.13.4.1</jackson.version>
         <resteasy.version>3.0.9.Final</resteasy.version>
         <postgres.version>9.4.1212</postgres.version>
         <ninja-rocker.version>0.16.0</ninja-rocker.version>
